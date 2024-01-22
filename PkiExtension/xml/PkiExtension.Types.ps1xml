@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Types>
+	<Type>
+		<Name>PkiExtension.Template</Name>
+		<Members>
+			<ScriptProperty>
+				<Name>Version</Name>
+				<GetScriptBlock>
+'{0}.{1}' -f $this.Revision, $this.'Mspki-Template-Minor-Revision'
+				</GetScriptBlock>
+			</ScriptProperty>
+			<ScriptProperty>
+				<Name>KeyUsage</Name>
+				<GetScriptBlock>
+foreach ($usage in $this.Pkiextendedkeyusage) {
+	$__oid = [System.Security.Cryptography.Oid]::new($usage)
+	if ($__oid.FriendlyName) { $__oid.FriendlyName }
+	else { $__oid.Value}
+}
+				</GetScriptBlock>
+			</ScriptProperty>
+			<AliasProperty>
+				<Name>SchemaVersion</Name>
+				<ReferencedMemberName>Mspki-Template-Schema-Version</ReferencedMemberName>
+			</AliasProperty>
+		</Members>
+	</Type>
+</Types>
