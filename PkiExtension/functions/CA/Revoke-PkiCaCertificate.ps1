@@ -26,6 +26,9 @@
 	.PARAMETER Reason
 		Why the certificate is being revoked.
 		Defaults to "Unspecified"
+
+	.PARAMETER RevocationDate
+		Starting when the certificate is considered invalid.
 	
 	.PARAMETER EnableException
 		This parameters disables user-friendly warnings and enables the throwing of exceptions.
@@ -52,7 +55,7 @@
 		$Credential,
 
 		[string]
-		$FQCAName,    
+		$FQCAName,
       
 		[Parameter(Mandatory = $true, ValueFromPipeline = $true)]
 		$Certificate,
@@ -65,7 +68,7 @@
 		$RevocationDate = [DateTime]::Now,
 
 		[switch]
-		$EnabledException
+		$EnableException
 	)
 
 	begin {
@@ -83,7 +86,7 @@
 
 		$result = Resolve-Fqca -ComputerName $ComputerName -Credential $Credential -FQCAName $FQCAName
 		if (-not $result.Success) {
-			Stop-PSFFunction -String 'Revoke-PkiCaCertificate.Error.FqcaNotResolved' -StringValues $ComputerName, $result.Error -Cmdlet $PSCmdlet -EnableException $EnabledException -Category ObjectNotFound
+			Stop-PSFFunction -String 'Revoke-PkiCaCertificate.Error.FqcaNotResolved' -StringValues $ComputerName, $result.Error -Cmdlet $PSCmdlet -EnableException $EnableException -Category ObjectNotFound
 			return
 		}
 		$caName = $result.FQCA
@@ -100,7 +103,7 @@
 				$currentItem = $certificateObject.Certificate
 			}
 			else {
-				Stop-PSFFunction -Message "Revoke-PkiCaCertificate.Error.NotACertificate" -StringValues $certificateObject -EnableException $EnabledException -Continue -Target $certificateObject
+				Stop-PSFFunction -Message "Revoke-PkiCaCertificate.Error.NotACertificate" -StringValues $certificateObject -EnableException $EnableException -Continue -Target $certificateObject
 			}
 
 			$config = @{
@@ -119,7 +122,7 @@
 					catch { throw "Failed to revoke certificate $($Config.SerialNumber) against $($Config.FQCA)"}
 					finally { $null = [System.Runtime.Interopservices.Marshal]::ReleaseComObject($COMcertAdmin) }
 				} -ArgumentList $config
-			} -EnableException $EnabledException -PSCmdlet $PSCmdlet -Continue
+			} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 		}
 	}
 }

@@ -18,6 +18,18 @@
 		The fully qualified name of the CA.
 		Specifying this allows remote access to the target CA.
 		'<Computername>\<CA Name>'
+
+	.PARAMETER CommonName
+		Filter by common name.
+
+	.PARAMETER RequestID
+		Search for a certificate by its specific request ID.
+
+	.PARAMETER Requester
+		Search for certificates by who requested them.
+
+	.PARAMETER TemplateName
+		Search for certificates by the template they were made from.
 	
 	.PARAMETER Properties
 		The properties to retrieve.
@@ -45,6 +57,7 @@
 		Returns all issued certificate from ca.contoso.com.
 		Requires PS remoting access to the target computerh osting the CA service.
 #>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingEmptyCatchBlock", "")]
 	[CmdletBinding()]
 	param (
 		[PSFComputer[]]

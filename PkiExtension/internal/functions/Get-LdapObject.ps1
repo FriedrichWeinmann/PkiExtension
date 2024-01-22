@@ -221,7 +221,7 @@
 			$null = $searcher.PropertiesToLoad.Add($propertyName)
 		}
 		
-		Write-Verbose "Search filter: $LdapFilter"
+		Write-PSFMessage -String 'Get-LdapObject.Filter' -StringValues $ldapFilter
 		#endregion Prepare Searcher
 	}
 	process {
@@ -241,10 +241,10 @@
 			foreach ($key in $ldapobject.Properties.Keys) {
 				$resultHash[(Get-PropertyName -Key $key -Property $Property)] = switch ($key) {
 					'ObjectClass' { $ldapobject.Properties[$key][@($ldapobject.Properties[$key]).Count - 1] }
-					'ObjectGuid' { [guid]::new(([byte[]]($ldapobject.Properties[$key] | Write-Output))) }
-					'ObjectSID' { [System.Security.Principal.SecurityIdentifier]::new(([byte[]]($ldapobject.Properties[$key] | Write-Output)), 0) }
+					'ObjectGuid' { [guid]::new(([byte[]]($($ldapobject.Properties[$key])))) }
+					'ObjectSID' { [System.Security.Principal.SecurityIdentifier]::new(([byte[]]$($ldapobject.Properties[$key])), 0) }
 						
-					default { $ldapobject.Properties[$key] | Write-Output }
+					default { $($ldapobject.Properties[$key]) }
 				}
 			}
 			if ($resultHash.ContainsKey("ObjectClass")) { $resultHash["PSTypeName"] = $resultHash["ObjectClass"] }
