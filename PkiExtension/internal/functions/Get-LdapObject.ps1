@@ -209,7 +209,7 @@
 			$searcher.SearchRoot = New-DirectoryEntry -Path ("LDAP://CN=Configuration,{0}" -f $searcher.SearchRoot.distinguishedName[0]) -Server $Server -Credential $Credential
 		}
 		
-		Write-Verbose "Searching $($SearchScope) in $($searcher.SearchRoot.Path)"
+		Write-PSFMessage -Level InternalComment -String 'Get-LdapObject.Search' -StringValues $SearchScope, $searcher.SearchRoot.Path
 		
 		if ($Credential) {
 			$searcher.SearchRoot = New-Object System.DirectoryServices.DirectoryEntry($searcher.SearchRoot.Path, $Credential.UserName, $Credential.GetNetworkCredential().Password)

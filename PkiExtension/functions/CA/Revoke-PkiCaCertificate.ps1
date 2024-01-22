@@ -33,6 +33,12 @@
 	.PARAMETER EnableException
 		This parameters disables user-friendly warnings and enables the throwing of exceptions.
 		This is less user friendly, but allows catching exceptions in calling scripts.
+
+	.PARAMETER WhatIf
+		If this switch is enabled, no actions are performed but informational messages will be displayed that explain what would happen if the command were to run.
+	
+	.PARAMETER Confirm
+		If this switch is enabled, you will be prompted for confirmation before executing any operations that change state.
 	
 	.EXAMPLE
 		PS C:\> Get-PkiCaIssuedCertificate | Revoke-PkiCaCertificate
@@ -103,7 +109,7 @@
 				$currentItem = $certificateObject.Certificate
 			}
 			else {
-				Stop-PSFFunction -Message "Revoke-PkiCaCertificate.Error.NotACertificate" -StringValues $certificateObject -EnableException $EnableException -Continue -Target $certificateObject
+				Stop-PSFFunction -String "Revoke-PkiCaCertificate.Error.NotACertificate" -StringValues $certificateObject -EnableException $EnableException -Continue -Target $certificateObject
 			}
 
 			$config = @{
