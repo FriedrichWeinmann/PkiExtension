@@ -24,8 +24,17 @@
 		Only certificates that are still valid but will expire in the specified number of days will be returned.
 		Defaults to: 14
 	
+	.PARAMETER Properties
+		The properties to retrieve.
+		These are the headers as shown in the CA mmc console on an English languaged device.
+		The result objects will have the same properties, but without the whitespace.
+	
 	.PARAMETER TemplateName
 		Only certificates of the specified template are being returned.
+
+	.PARAMETER Server
+		The active directory server to contact using LDAP.
+		Used to resolve the templates used.
 	
 	.EXAMPLE
 		PS C:\> Get-PkiCaExpiringCertificate
@@ -47,18 +56,44 @@
 		
 		[int]
 		$DaysExpirationThreshold = 14,
+
+		[String[]]
+		$Properties = (
+			'Issued Common Name',
+			'Certificate Expiration Date',
+			'Certificate Effective Date',
+			'Certificate Template',
+			'Issued Request ID',
+			'Certificate Hash',
+			'Request Disposition Message',
+			'Requester Name',
+			'Binary Certificate'
+		),
 		
 		[PsfArgumentCompleter('PkiExtension.TemplateName')]
 		[string]
-		$TemplateName
+		$TemplateName,
 	
+		[string]
+		$Server
 	)
 	
 	begin {
 		$ThresholdDate = (Get-Date).AddDays($DaysExpirationThreshold)
+
+		$required = @(
+			'Certificate Expiration Date'
+			'Issued Common Name'
+		)
 	}
 	process {
 		$param = $PSBoundParameters | ConvertTo-PSFHashtable -ReferenceCommand Get-PkiCaIssuedCertificate
+		if ($param.Properties) {
+			foreach ($requiredProperty in $required) {
+				if ($requiredProperty -in $param.Properties) { continue }
+				$param.Properties = @($param.Properties) + $requiredProperty
+			}
+		}
 		$allCerts = Get-PkiCaIssuedCertificate @param | Select-PSFObject -KeepInputObject -TypeName PkiExtension.ExpiringCertificate
 
 		$expiredCerts = $allCerts | Where-Object {

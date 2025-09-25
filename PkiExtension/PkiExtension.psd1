@@ -3,7 +3,7 @@
 	RootModule        = 'PkiExtension.psm1'
 	
 	# Version number of this module.
-	ModuleVersion     = '1.0.0'
+	ModuleVersion     = '1.1.3'
 	
 	# ID used to uniquely identify this module
 	GUID              = '095bde77-47b2-4f9c-a508-911d56adc00a'
@@ -26,7 +26,7 @@
 	# Modules that must be imported into the global environment prior to importing
 	# this module
 	RequiredModules   = @(
-		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.10.318' }
+		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.13.406' }
 	)
 	
 	# Assemblies that must be loaded prior to importing this module
@@ -40,6 +40,7 @@
 	
 	# Functions to export from this module
 	FunctionsToExport = @(
+		'Get-PkiCaCertificate'
 		'Get-PkiCaExpiringCertificate'
 		'Get-PkiCaIssuedCertificate'
 		'Get-PkiTemplate'
