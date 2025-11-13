@@ -3,7 +3,7 @@
 	RootModule        = 'PkiExtension.psm1'
 	
 	# Version number of this module.
-	ModuleVersion     = '1.1.3'
+	ModuleVersion     = '1.1.4'
 	
 	# ID used to uniquely identify this module
 	GUID              = '095bde77-47b2-4f9c-a508-911d56adc00a'
