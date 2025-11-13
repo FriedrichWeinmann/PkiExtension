@@ -97,7 +97,7 @@
 		$allCerts = Get-PkiCaIssuedCertificate @param | Select-PSFObject -KeepInputObject -TypeName PkiExtension.ExpiringCertificate
 
 		$expiredCerts = $allCerts | Where-Object {
-			($_.CertificateExpirationdate -lt $ThresholdDate) -and
+			($_.CertificateExpirationDate -lt $ThresholdDate) -and
 			(
 				(-not $TemplateName) -or
 				($_.CertificateTemplate -eq $TemplateName) -or
@@ -112,7 +112,18 @@
 		}
 		$alreadyRenewedExpiredCerts = $expiredCerts | Where-Object IssuedCommonname -In $notExpiredCerts.IssuedCommonname
 		$renewalPendingCerts = $expiredCerts | Where-Object IssuedCommonname -NotIn $notExpiredCerts.IssuedCommonname
-		$alreadyRenewedExpiredCerts | Add-Member -MemberType NoteProperty -Name CertStatus -Value Renewed -PassThru
-		$renewalPendingCerts | Add-Member -MemberType NoteProperty -Name CertStatus -Value RenewalPending -PassThru
+		
+		$alreadyRenewedExpiredCerts | ForEach-Object {
+			[PSFramework.Object.ObjectHost]::AddNoteProperty($_, @{
+				CertStatus = 'Renewed'
+				RenewedBy = @($notExpiredCerts | Where-Object IssuedCommonName -eq $_.IssuedCommonName | Sort-Object CertificateExpirationDate -Descending)[0]
+			})
+			$_
+		}
+		[PSFramework.Object.ObjectHost]::AddNotePropertyBulk($renewalPendingCerts, @{
+			CertStatus = 'RenewalPending'
+			RenewedBy = $null
+		})
+		$renewalPendingCerts
 	}
 }

@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.1.4 (2025-11-13)
+
++ Upd: Get-PkiCaExpiringCertificate - Added `RenewedBy` Property to result
+
 ## 1.1.3 (2025-09-25)
 
 + New: Get-PkiCaCertificate - Lists certificates from a CA.
