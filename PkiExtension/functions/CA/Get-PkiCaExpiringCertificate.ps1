@@ -35,6 +35,11 @@
 	.PARAMETER Server
 		The active directory server to contact using LDAP.
 		Used to resolve the templates used.
+
+	.PARAMETER IgnoreTemplate
+		Do not require matching templates on the renewal check.
+		By default, a certificate is only considered renewed, if there is a certificiate that matches subject AND template that is still valid.
+		Setting this parameter removes the template matching and should be used when migrating from one template to another.
 	
 	.EXAMPLE
 		PS C:\> Get-PkiCaExpiringCertificate
@@ -75,7 +80,10 @@
 		$TemplateName,
 	
 		[string]
-		$Server
+		$Server,
+
+		[switch]
+		$IgnoreTemplate
 	)
 	
 	begin {
@@ -85,6 +93,67 @@
 			'Certificate Expiration Date'
 			'Issued Common Name'
 		)
+
+		#region Filter Conditions
+		$isExpiring = {
+			($_.CertificateExpirationDate -lt $ThresholdDate) -and
+			(
+				(-not $TemplateName) -or
+				($_.CertificateTemplate -eq $TemplateName) -or
+				($_.TemplateDisplayName -eq $TemplateName)
+			)
+		}
+		$hasSuccessor = {
+			$origin = $_
+			$successor = $allCerts | Where-Object {
+				($_ -ne $Origin) -and
+				($_.CertificateExpirationDate -GE $ThresholdDate) -and
+				($_.IssuedCommonName -eq $origin.IssuedCommonName) -and
+				(
+					(-not $TemplateName) -or
+					($_.CertificateTemplate -eq $TemplateName) -or
+					($_.TemplateDisplayName -eq $TemplateName)
+				) -and
+				(
+					$IgnoreTemplate -or
+					($_.CertificateTemplate -eq $origin.CertificateTemplate)
+				)
+			}
+			$successor -as [bool]
+		}
+		$hasNoSuccessor = {
+			$origin = $_
+			$successor = $allCerts | Where-Object {
+				($_ -ne $Origin) -and
+				($_.CertificateExpirationDate -GE $ThresholdDate) -and
+				($_.IssuedCommonName -eq $origin.IssuedCommonName) -and
+				(
+					(-not $TemplateName) -or
+					($_.CertificateTemplate -eq $TemplateName) -or
+					($_.TemplateDisplayName -eq $TemplateName)
+				) -and
+				(
+					$IgnoreTemplate -or
+					($_.CertificateTemplate -eq $origin.CertificateTemplate)
+				)
+			}
+			-not $successor
+		}
+		$isSuccessor = {
+			($_ -ne $currentCert) -and
+			($_.CertificateExpirationDate -GE $ThresholdDate) -and
+			($_.IssuedCommonName -eq $currentCert.IssuedCommonName) -and
+			(
+				(-not $TemplateName) -or
+				($_.CertificateTemplate -eq $TemplateName) -or
+				($_.TemplateDisplayName -eq $TemplateName)
+			) -and
+			(
+				$IgnoreTemplate -or
+				($_.CertificateTemplate -eq $currentCert.CertificateTemplate)
+			)
+		}
+		#endregion Filter Conditions
 	}
 	process {
 		$param = $PSBoundParameters | ConvertTo-PSFHashtable -ReferenceCommand Get-PkiCaIssuedCertificate
@@ -96,27 +165,16 @@
 		}
 		$allCerts = Get-PkiCaIssuedCertificate @param | Select-PSFObject -KeepInputObject -TypeName PkiExtension.ExpiringCertificate
 
-		$expiredCerts = $allCerts | Where-Object {
-			($_.CertificateExpirationDate -lt $ThresholdDate) -and
-			(
-				(-not $TemplateName) -or
-				($_.CertificateTemplate -eq $TemplateName) -or
-				($_.TemplateDisplayName -eq $TemplateName)
-			)
-		}
+		$expiredCerts = $allCerts | Where-Object $isExpiring
 
-		$notExpiredCerts = $allCerts | Where-Object CertificateExpirationDate -GE $ThresholdDate | Where-Object {
-			(-not $TemplateName) -or
-			($_.CertificateTemplate -eq $TemplateName) -or
-			($_.TemplateDisplayName -eq $TemplateName)
-		}
-		$alreadyRenewedExpiredCerts = $expiredCerts | Where-Object IssuedCommonname -In $notExpiredCerts.IssuedCommonname
-		$renewalPendingCerts = $expiredCerts | Where-Object IssuedCommonname -NotIn $notExpiredCerts.IssuedCommonname
+		$alreadyRenewedExpiredCerts = $expiredCerts | Where-Object $hasSuccessor
+		$renewalPendingCerts = $expiredCerts | Where-Object $hasNoSuccessor
 		
 		$alreadyRenewedExpiredCerts | ForEach-Object {
-			[PSFramework.Object.ObjectHost]::AddNoteProperty($_, @{
+			$currentCert = $_
+			[PSFramework.Object.ObjectHost]::AddNoteProperty($currentCert, @{
 				CertStatus = 'Renewed'
-				RenewedBy = @($notExpiredCerts | Where-Object IssuedCommonName -eq $_.IssuedCommonName | Sort-Object CertificateExpirationDate -Descending)[0]
+				RenewedBy = @($allCerts | Where-Object $isSuccessor | Sort-Object CertificateExpirationDate -Descending)[0]
 			})
 			$_
 		}

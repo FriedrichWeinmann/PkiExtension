@@ -3,7 +3,7 @@
 	$Repository = 'PSGallery'
 )
 
-Invoke-WebRequest 'https://raw.githubusercontent.com/PowershellFrameworkCollective/PSFramework.NuGet/refs/heads/master/bootstrap.ps1' | Invoke-Expression
+Invoke-WebRequest 'https://raw.githubusercontent.com/PowershellFrameworkCollective/PSFramework.NuGet/refs/heads/master/bootstrap.ps1' -UseBasicParsing | Invoke-Expression
 
 $modules = @("Pester", "PSFramework", "PSModuleDevelopment", "PSScriptAnalyzer")
 

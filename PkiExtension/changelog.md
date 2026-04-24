@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.1.5 (2026-02-02)
+
++ Upd: Get-PkiCaExpiringCertificate - now matching template, in addition to subject, when considering whether a certificate has been renewed.
+
 ## 1.1.4 (2025-11-13)
 
 + Upd: Get-PkiCaExpiringCertificate - Added `RenewedBy` Property to result
